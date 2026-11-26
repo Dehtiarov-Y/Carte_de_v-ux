@@ -1,43 +1,66 @@
 <head>
-  <!-- Some standard html stuff -->
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-  <!-- A short and witty title does the trick -->
-  <title>AR Example with Aframe and MindAR</title>
-  <!-- Import Scripts for Aframe, mind-ar and Aframe extras for animation -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carte de vœux 2027 — Préfecture de Colmar (WebAR)</title>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.6.0/dist/aframe-extras.min.js"></script>
-
+  <script>
+    AFRAME.registerComponent('star-glow', {
+      init: function () {
+        this.starMaterials = [];
+        this.el.addEventListener('model-loaded', () => {
+          const mesh = this.el.getObject3D('mesh');
+          if (!mesh) return;
+          mesh.traverse((node) => {
+            if (node.isMesh && node.material) {
+              const name = (node.name || '').toLowerCase();
+              const matName = (node.material.name || '').toLowerCase();
+              if (name.includes('star') || matName.includes('star')) {
+                node.material.emissive = new THREE.Color(0xffdf73);
+                node.material.emissiveIntensity = 1.2;
+                node.material.needsUpdate = true;
+                this.starMaterials.push(node.material);
+              }
+            }
+          });
+        });
+      },
+      tick: function (time) {
+        if (!this.starMaterials.length) return;
+        const pulse = 1.1 + 0.65 * Math.sin(time * 0.004);
+        this.starMaterials.forEach((mat) => {
+          mat.emissiveIntensity = pulse;
+        });
+      }
+    });
+  </script>
 </head>
 <body>
-    <!-- Create a Scene and identify the image target -->
-    <a-scene
-    mindar-image="imageTargetSrc: ./ARtargetImage.mind; maxTrack: 1 filterMinCF: 0.0001; filterBeta: 1; warmupTolerance: 5; missTolerance: 10;" 
-    color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" 
-    device-orientation-permission-ui="enabled: false" 
+  <a-scene
+    mindar-image="imageTargetSrc: ./ARtargetImage.mind; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 1; warmupTolerance: 5; missTolerance: 10;"
+    color-space="sRGB"
+    renderer="colorManagement: true, physicallyCorrectLights"
+    device-orientation-permission-ui="enabled: false"
     vr-mode-ui="enabled: false"
     id="scene"
-    >
-        <!-- Load an asset - GLTF Model -->
-        <a-assets>
-        <a-asset-item id="Planet" response-type="arraybuffer" src="./Carte-de-voeux.glb"></a-asset-item>
-        </a-assets>
-        
-        <!-- Add a camera -->
-        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-        
-        <!-- call the entity and load the model -->
-        <!-- define Position, Rotation and Scale of the model -->
-        <a-entity mindar-image-target="targetIndex: 0">
-            <a-gltf-model
-                animation-mixer
-                position="0 0 0.5"
-                rotation="90 0 0"
-                scale="0.5 0.5 0.5"
-                src="#Planet"
-                id="DerPlanet"
-            ></a-gltf-model>
-        </a-entity>
-    </a-scene>
+  >
+    <a-assets>
+      <a-asset-item id="CarteModel" response-type="arraybuffer" src="./Carte-de-voeux.glb"></a-asset-item>
+    </a-assets>
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <a-entity mindar-image-target="targetIndex: 0">
+      <a-gltf-model
+        id="CarteVoeux2027"
+        src="#CarteModel"
+        animation-mixer="loop: repeat"
+        star-glow
+        position="0 0 0.15"
+        rotation="90 0 0"
+        scale="0.32 0.32 0.32"
+      ></a-gltf-model>
+    </a-entity>
+  </a-scene>
 </body>
