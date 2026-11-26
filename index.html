@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,21 +16,29 @@
           if (!mesh) return;
           mesh.traverse((node) => {
             if (node.isMesh && node.material) {
-              const name = (node.name || '').toLowerCase();
-              const matName = (node.material.name || '').toLowerCase();
-              if (name.includes('star') || matName.includes('star')) {
-                node.material.emissive = new THREE.Color(0xffdf73);
-                node.material.emissiveIntensity = 1.2;
-                node.material.needsUpdate = true;
-                this.starMaterials.push(node.material);
-              }
+              const mats = Array.isArray(node.material) ? node.material : [node.material];
+              const nodeName = (node.name || '').toLowerCase();
+              mats.forEach((mat) => {
+                const matName = (mat.name || '').toLowerCase();
+                if (
+                  nodeName.includes('star') ||
+                  nodeName.includes('cigogne') ||
+                  matName.includes('star') ||
+                  matName.includes('cigogne')
+                ) {
+                  mat.emissive = new THREE.Color(0xffe07d);
+                  mat.emissiveIntensity = 1.4;
+                  mat.needsUpdate = true;
+                  this.starMaterials.push(mat);
+                }
+              });
             }
           });
         });
       },
       tick: function (time) {
         if (!this.starMaterials.length) return;
-        const pulse = 1.1 + 0.65 * Math.sin(time * 0.004);
+        const pulse = 1.25 + 0.75 * Math.sin(time * 0.004);
         this.starMaterials.forEach((mat) => {
           mat.emissiveIntensity = pulse;
         });
@@ -38,7 +48,7 @@
 </head>
 <body>
   <a-scene
-    mindar-image="imageTargetSrc: ./ARtargetImage.mind; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 1; warmupTolerance: 5; missTolerance: 10;"
+    mindar-image="imageTargetSrc: ./ARtargetImage.mind; maxTrack: 1; filterMinCF: 0.00001; filterBeta: 0.2; warmupTolerance: 8; missTolerance: 15;"
     color-space="sRGB"
     renderer="colorManagement: true, physicallyCorrectLights"
     device-orientation-permission-ui="enabled: false"
@@ -57,9 +67,9 @@
         src="#CarteModel"
         animation-mixer="loop: repeat"
         star-glow
-        position="0 0 0.15"
+        position="0 0 0.08"
         rotation="90 0 0"
-        scale="0.32 0.32 0.32"
+        scale="0.72 0.72 0.72"
       ></a-gltf-model>
     </a-entity>
   </a-scene>
